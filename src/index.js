@@ -56,7 +56,7 @@ class Geocoder extends Component {
             transitionDuration,
             hideOnSelect,
             pointZoom,
-            formatItem
+            formatInputItem
         } = this.props;
         let newViewport = new WebMercatorViewport(viewport);
         const { bbox, center } = item;
@@ -85,7 +85,7 @@ class Geocoder extends Component {
         );
 
         const nextState = {
-            queryString: formatItem(item)
+            queryString: formatInputItem(item)
         };
 
         if (hideOnSelect) {
@@ -113,7 +113,7 @@ class Geocoder extends Component {
     render() {
         const { queryString, results, showResults } = this.state;
         const {
-            formatItem,
+            formatListItem,
             className,
             inputComponent,
             itemComponent
@@ -140,7 +140,7 @@ class Geocoder extends Component {
                                 onClick={() => this.onSelected(item)}
                                 item={item}
                             >
-                                {formatItem(item)}
+                                {formatListItem(item)}
                             </Item>
                         ))}
                     </div>
@@ -159,7 +159,8 @@ Geocoder.propTypes = {
     hideOnSelect: PropTypes.bool,
     pointZoom: PropTypes.number,
     mapboxApiAccessToken: PropTypes.string.isRequired,
-    formatItem: PropTypes.func,
+    formatInputItem: PropTypes.func,
+    formatListItem: PropTypes.func,
     className: PropTypes.string,
     inputComponent: PropTypes.func,
     itemComponent: PropTypes.func,
@@ -173,7 +174,8 @@ Geocoder.defaultProps = {
     transitionDuration: 0,
     hideOnSelect: false,
     pointZoom: 16,
-    formatItem: item => item.place_name,
+    formatInputItem: item => item.place_name,
+    formatListItem: item => item.place_name,
     queryParams: {},
     className: "",
     limit: 5

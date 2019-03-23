@@ -89,7 +89,7 @@ class Geocoder extends Component {
         };
 
         if (hideOnSelect) {
-            nextState["results"] = [];
+            showResults: false;
         }
 
         this.setState(nextState);

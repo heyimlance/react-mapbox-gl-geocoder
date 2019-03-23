@@ -1,26 +1,43 @@
-import React, {Component} from 'react';
-import PropTypes from 'prop-types';
-import MapboxClient from 'mapbox';
-import {WebMercatorViewport} from 'viewport-mercator-project';
+import React, { Component } from "react";
+import PropTypes from "prop-types";
+import MapboxClient from "mapbox";
+import { WebMercatorViewport } from "viewport-mercator-project";
 
 class Geocoder extends Component {
     debounceTimeout = null;
     state = {
+        queryString: "",
         results: [],
         showResults: false
     };
 
-    onChange = (event) => {
-        const {timeout, queryParams, localGeocoder, limit, localOnly} = this.props;
+    onChange = event => {
+        const {
+            timeout,
+            queryParams,
+            localGeocoder,
+            limit,
+            localOnly
+        } = this.props;
         const queryString = event.target.value;
+        this.setState({ queryString });
+
+        if (!queryString) {
+            return;
+        }
 
         clearTimeout(this.debounceTimeout);
         this.debounceTimeout = setTimeout(() => {
-            const localResults = localGeocoder ? localGeocoder(queryString) : [];
-            const params = {...queryParams, ...{limit: limit - localResults.length}};
+            const localResults = localGeocoder
+                ? localGeocoder(queryString)
+                : [];
+            const params = {
+                ...queryParams,
+                ...{ limit: limit - localResults.length }
+            };
 
             if (params.limit > 0 && !localOnly) {
-                this.client.geocodeForward(queryString, params).then((res) => {
+                this.client.geocodeForward(queryString, params).then(res => {
                     this.setState({
                         results: [...localResults, ...res.entity.features]
                     });
@@ -32,10 +49,17 @@ class Geocoder extends Component {
             }
         }, timeout);
     };
-    onSelected = (item) => {
-        const {viewport, onSelected, transitionDuration, hideOnSelect, pointZoom} = this.props;
+    onSelected = item => {
+        const {
+            viewport,
+            onSelected,
+            transitionDuration,
+            hideOnSelect,
+            pointZoom,
+            formatItem
+        } = this.props;
         let newViewport = new WebMercatorViewport(viewport);
-        const {bbox, center} = item;
+        const { bbox, center } = item;
 
         if (bbox) {
             newViewport = newViewport.fitBounds([
@@ -50,53 +74,77 @@ class Geocoder extends Component {
             };
         }
 
-        const {longitude, latitude, zoom} = newViewport;
+        const { longitude, latitude, zoom } = newViewport;
 
-        onSelected({...viewport, ...{longitude, latitude, zoom, transitionDuration}}, item);
+        onSelected(
+            {
+                ...viewport,
+                ...{ longitude, latitude, zoom, transitionDuration }
+            },
+            item
+        );
+
+        const nextState = {
+            queryString: formatItem(item)
+        };
 
         if (hideOnSelect) {
-            this.setState({results: []});
+            nextState["results"] = [];
         }
+
+        this.setState(nextState);
     };
 
     showResults = () => {
-        this.setState({showResults: true});
+        this.setState({ showResults: true });
     };
 
     hideResults = () => {
         setTimeout(() => {
-            this.setState({showResults: false});
+            this.setState({ showResults: false });
         }, 300);
     };
 
     constructor(props) {
         super();
-
         this.client = new MapboxClient(props.mapboxApiAccessToken);
     }
 
     render() {
-        const {results, showResults} = this.state;
-        const {formatItem, className, inputComponent, itemComponent} = this.props;
+        const { queryString, results, showResults } = this.state;
+        const {
+            formatItem,
+            className,
+            inputComponent,
+            itemComponent
+        } = this.props;
 
-        const Input = inputComponent || 'input';
-        const Item = itemComponent || 'div';
+        const Input = inputComponent || "input";
+        const Item = itemComponent || "div";
 
         return (
             <div className={`react-geocoder ${className}`}>
-                <Input onChange={this.onChange} onBlur={this.hideResults} onFocus={this.showResults}/>
+                <Input
+                    value={queryString}
+                    onChange={this.onChange}
+                    onBlur={this.hideResults}
+                    onFocus={this.showResults}
+                />
 
-                {showResults && !!results.length &&
-                <div className='react-geocoder-results'>
-                    {results.map((item, index) => (
-                        <Item
-                            key={index} className='react-geocoder-item' onClick={() => this.onSelected(item)}
-                            item={item}
-                        >
-                            {formatItem(item)}
-                        </Item>
-                    ))}
-                </div>}
+                {showResults && !!results.length && (
+                    <div className="react-geocoder-results">
+                        {results.map((item, index) => (
+                            <Item
+                                key={index}
+                                className="react-geocoder-item"
+                                onClick={() => this.onSelected(item)}
+                                item={item}
+                            >
+                                {formatItem(item)}
+                            </Item>
+                        ))}
+                    </div>
+                )}
             </div>
         );
     }
@@ -127,7 +175,7 @@ Geocoder.defaultProps = {
     pointZoom: 16,
     formatItem: item => item.place_name,
     queryParams: {},
-    className: '',
+    className: "",
     limit: 5
 };
 

@@ -8,6 +8,7 @@ class Geocoder extends Component {
     state = {
         queryString: "",
         results: [],
+        selectedResult: null,
         showResults: false
     };
 
@@ -39,16 +40,66 @@ class Geocoder extends Component {
             if (params.limit > 0 && !localOnly) {
                 this.client.geocodeForward(queryString, params).then(res => {
                     this.setState({
+                        selectedResult: 0,
                         results: [...localResults, ...res.entity.features]
                     });
                 });
             } else {
                 this.setState({
+                    selectedResult: 0,
                     results: localResults
                 });
             }
         }, timeout);
     };
+
+    onKeyDown = event => {
+        const { queryString, selectedResult, results } = this.state;
+
+        if (!results) {
+            return;
+        }
+
+        switch (event.keyCode) {
+            case 27: //esc
+                this.inputRef.current.blur();
+                break;
+            case 13: //enter
+                this.onSelected(results[selectedResult]);
+                this.inputRef.current.blur();
+                break;
+            case 38: //up
+                event.preventDefault();
+                this.setState(
+                    {
+                        selectedResult: !selectedResult
+                            ? results.length - 1
+                            : selectedResult - 1
+                    },
+                    () => {
+                        this.inputRef.current.selectionStart = this.inputRef.current.selectionEnd =
+                            queryString.length;
+                    }
+                );
+                break;
+            case 40: //down
+                event.preventDefault();
+                this.setState(
+                    {
+                        selectedResult:
+                            selectedResult === results.length - 1
+                                ? 0
+                                : selectedResult + 1
+                    },
+                    () => {
+                        this.inputRef.current.selectionStart = this.inputRef.current.selectionEnd =
+                            queryString.length;
+                    }
+                );
+                break;
+        }
+    };
+
     onSelected = item => {
         const {
             viewport,
@@ -89,7 +140,7 @@ class Geocoder extends Component {
         };
 
         if (hideOnSelect) {
-            showResults: false;
+            nextState["showResults"] = false;
         }
 
         this.setState(nextState);
@@ -100,18 +151,22 @@ class Geocoder extends Component {
     };
 
     hideResults = () => {
-        setTimeout(() => {
-            this.setState({ showResults: false });
-        }, 300);
+        this.setState({ showResults: false });
     };
 
     constructor(props) {
         super();
+        this.inputRef = React.createRef();
         this.client = new MapboxClient(props.mapboxApiAccessToken);
     }
 
     render() {
-        const { queryString, results, showResults } = this.state;
+        const {
+            queryString,
+            results,
+            showResults,
+            selectedResult
+        } = this.state;
         const {
             formatListItem,
             className,
@@ -125,10 +180,13 @@ class Geocoder extends Component {
         return (
             <div className={`react-geocoder ${className}`}>
                 <Input
+                    ref={this.inputRef}
                     value={queryString}
                     onChange={this.onChange}
                     onBlur={this.hideResults}
                     onFocus={this.showResults}
+                    onKeyDown={this.onKeyDown}
+                    onKeyUp={event => event.preventDefault()}
                 />
 
                 {showResults && !!results.length && (
@@ -136,7 +194,11 @@ class Geocoder extends Component {
                         {results.map((item, index) => (
                             <Item
                                 key={index}
-                                className="react-geocoder-item"
+                                className={
+                                    index === selectedResult
+                                        ? "react-geocoder-item react-geocoder-item-selected"
+                                        : "react-geocoder-item"
+                                }
                                 onClick={() => this.onSelected(item)}
                                 item={item}
                             >

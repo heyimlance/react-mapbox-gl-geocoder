@@ -66,7 +66,7 @@ class Geocoder extends Component {
                 this.inputRef.current.blur();
                 break;
             case 13: //enter
-                this.onSelected(results[selectedResult]);
+                this.onSelected(results[selectedResult], selectedResult);
                 this.inputRef.current.blur();
                 break;
             case 38: //up
@@ -101,7 +101,7 @@ class Geocoder extends Component {
         }
     };
 
-    onSelected = item => {
+    onSelected = (item, index) => {
         const {
             viewport,
             onSelected,
@@ -137,6 +137,7 @@ class Geocoder extends Component {
         );
 
         const nextState = {
+            selectedResult: index,
             queryString: formatInputItem(item)
         };
 
@@ -200,7 +201,7 @@ class Geocoder extends Component {
                                         ? "react-geocoder-item react-geocoder-item-selected"
                                         : "react-geocoder-item"
                                 }
-                                onClick={() => this.onSelected(item)}
+                                onClick={() => this.onSelected(item, index)}
                                 item={item}
                             >
                                 {formatListItem(item)}

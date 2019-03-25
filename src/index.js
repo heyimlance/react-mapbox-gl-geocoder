@@ -2,6 +2,7 @@ import React, { Component } from "react";
 import PropTypes from "prop-types";
 import MapboxClient from "mapbox";
 import { WebMercatorViewport } from "viewport-mercator-project";
+import "./styles.css";
 
 class Geocoder extends Component {
     debounceTimeout = null;

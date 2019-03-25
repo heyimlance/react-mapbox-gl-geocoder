@@ -17,6 +17,7 @@
 }
 
 .react-geocoder-results {
+    width: 100%;
     position: absolute;
     z-index: 10;
     border-top: 1px solid #ccc;

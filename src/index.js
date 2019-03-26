@@ -170,6 +170,7 @@ class Geocoder extends Component {
             selectedResult
         } = this.state;
         const {
+            placeholder,
             formatListItem,
             className,
             inputComponent,
@@ -183,6 +184,7 @@ class Geocoder extends Component {
             <div className={`react-geocoder ${className}`}>
                 <Input
                     ref={this.inputRef}
+                    placeholder={placeholder}
                     value={queryString}
                     onChange={this.onChange}
                     onBlur={this.hideResults}
